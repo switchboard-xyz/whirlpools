@@ -1,6 +1,7 @@
 #![allow(clippy::assign_op_pattern)]
 #![allow(clippy::ptr_offset_with_cast)]
 #![allow(clippy::manual_range_contains)]
+#![allow(unused_imports, unused_variables, ambiguous_glob_reexports, unused_mut)]
 
 /// The following code is referenced from drift-labs:
 /// https://github.com/drift-labs/protocol-v1/blob/3da78f1f03b66a273fc50818323ac62874abd1d8/programs/clearing_house/src/math/bn.rs
@@ -22,17 +23,17 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use std::borrow::BorrowMut;
 use std::convert::TryInto;
-use std::io::{Error, ErrorKind, Write};
+use std::io;
+use std::io::{Error, ErrorKind, Read, Write};
 use std::mem::size_of;
 use uint::construct_uint;
 
 use crate::errors::ErrorCode;
-
 macro_rules! impl_borsh_serialize_for_bn {
-    ($type: ident) => {
+    ($type:ident) => {
         impl BorshSerialize for $type {
             #[inline]
-            fn serialize<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+            fn serialize<W: Write>(&self, writer: &mut W) -> io::Result<()> {
                 let bytes = self.to_le_bytes();
                 writer.write_all(&bytes)
             }
@@ -41,19 +42,26 @@ macro_rules! impl_borsh_serialize_for_bn {
 }
 
 macro_rules! impl_borsh_deserialize_for_bn {
-    ($type: ident) => {
+    ($type:ident) => {
         impl BorshDeserialize for $type {
             #[inline]
-            fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+            fn deserialize(buf: &mut &[u8]) -> io::Result<Self> {
                 if buf.len() < size_of::<$type>() {
-                    return Err(Error::new(
-                        ErrorKind::InvalidInput,
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
                         "Unexpected length of input",
                     ));
                 }
                 let res = $type::from_le_bytes(buf[..size_of::<$type>()].try_into().unwrap());
                 *buf = &buf[size_of::<$type>()..];
                 Ok(res)
+            }
+
+            #[inline]
+            fn deserialize_reader<R: Read>(mut reader: &mut R) -> io::Result<Self> {
+                let mut buf = [0u8; size_of::<$type>()];
+                reader.read_exact(&mut buf)?;
+                Self::deserialize(&mut &buf[..]).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
             }
         }
     };

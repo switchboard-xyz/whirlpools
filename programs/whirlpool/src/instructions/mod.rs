@@ -1,3 +1,4 @@
+#![allow(unused_imports, unused_variables, ambiguous_glob_reexports, unused_mut)]
 pub mod close_bundled_position;
 pub mod close_position;
 pub mod collect_fees;

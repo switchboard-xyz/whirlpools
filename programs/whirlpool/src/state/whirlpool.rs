@@ -53,6 +53,7 @@ pub struct Whirlpool {
     pub reward_infos: [WhirlpoolRewardInfo; NUM_REWARDS], // 384
 }
 
+
 // Number of rewards supported by Whirlpools
 pub const NUM_REWARDS: usize = 3;
 
@@ -67,6 +68,11 @@ impl Whirlpool {
             self.tick_spacing_seed.as_ref(),
             self.whirlpool_bump.as_ref(),
         ]
+    }
+
+    // ATODO: CUSTOM to try and get the account data using this local version of anchor
+    pub fn try_to_deserialize(data: &mut &[u8]) -> Result<Self> {
+        Self::try_deserialize(data).map_err(|_| ErrorCode::InvalidTokenMintOrder.into())
     }
 
     pub fn initialize(

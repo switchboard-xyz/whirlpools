@@ -1,3 +1,4 @@
+#![allow(unused_imports, unused_variables, ambiguous_glob_reexports, unused_mut, unused_parens)]
 use crate::{
     errors::ErrorCode,
     math::add_liquidity_delta,
